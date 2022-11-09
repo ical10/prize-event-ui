@@ -4,11 +4,11 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 export default function SetupEventForm() {
-  const [prizeAmount, setPrizeAmount] = useState(0);
+  const [prizeAmount, setPrizeAmount] = useState('0');
   const [prizeTokenAddress, setPrizeTokenAddress] = useState('');
-  const [firstWinnerPercentage, setFirstWinnerPercentage] = useState(50);
-  const [secondWinnerPercentage, setSecondWinnerPercentage] = useState(30);
-  const [thirdWinnerPercentage, setThirdWinnerPercentage] = useState(20);
+  const [firstWinnerPercentage, setFirstWinnerPercentage] = useState('50');
+  const [secondWinnerPercentage, setSecondWinnerPercentage] = useState('30');
+  const [thirdWinnerPercentage, setThirdWinnerPercentage] = useState('20');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPrizeAmount(event.target.value);
