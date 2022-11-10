@@ -3,23 +3,39 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 import {ethers} from 'ethers';
+import {useNetwork, usePrepareContractWrite, useContractWrite, useWaitForTransaction} from 'wagmi';
+import PrizeEventAbi from 'assets/PrizeEvent-abi.json';
+import useDebounce from 'src/hooks/useDebounce';
 
 export default function SetupEventForm() {
   const [prizeAmount, setPrizeAmount] = useState('0');
-  const [prizeTokenAddress, setPrizeTokenAddress] = useState('');
+  const debouncedPrizeAmount = useDebounce(prizeAmount);
+
+  const {chain} = useNetwork();
+
+  const [prizeTokenAddress, setPrizeTokenAddress] = useState(
+    '0x326C977E6efc84E512bB9C30f76E30c160eD06FB',
+  );
+  const debouncedPrizeTokenAddress = useDebounce(prizeTokenAddress);
 
   const [firstWinnerPercentage, setFirstWinnerPercentage] = useState('50');
   const [secondWinnerPercentage, setSecondWinnerPercentage] = useState('30');
   const [thirdWinnerPercentage, setThirdWinnerPercentage] = useState('20');
+  const debouncedFirstWinnerPercentage = useDebounce(firstWinnerPercentage);
+  const debouncedSecondWinnerPercentage = useDebounce(secondWinnerPercentage);
+  const debouncedThirdWinnerPercentage = useDebounce(thirdWinnerPercentage);
 
   const [stringVoters, setStringVoters] = useState('');
   const [votersConfirmed, setVotersConfirmed] = useState();
   const [voters, setVoters] = useState([]);
+  const debouncedVoters = useDebounce(voters);
 
   const [stringParticipants, setStringParticipants] = useState('');
   const [participantsConfirmed, setParticipantsConfirmed] = useState();
   const [participants, setParticipants] = useState([]);
+  const debouncedParticipants = useDebounce(participants);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPrizeAmount(event.target.value);
@@ -91,21 +107,38 @@ export default function SetupEventForm() {
     return false;
   };
 
-  const handleSubmit = () => {
-    console.log({
-      prizeAmount,
-      prizeTokenAddress,
-      firstWinnerPercentage,
-      secondWinnerPercentage,
-      thirdWinnerPercentage,
-      voters,
-      participants,
-    });
-  };
+  const {config} = usePrepareContractWrite({
+    address: '0x0c66b1628172A07bE62AfA95110D824047c92330',
+    abi: PrizeEventAbi,
+    functionName: 'setupEvent',
+    args: [
+      parseInt(debouncedPrizeAmount),
+      0,
+      debouncedPrizeTokenAddress,
+      [
+        parseInt(debouncedFirstWinnerPercentage),
+        parseInt(debouncedSecondWinnerPercentage),
+        parseInt(debouncedThirdWinnerPercentage),
+      ],
+      debouncedVoters,
+      debouncedParticipants,
+    ],
+    enabled: isFormValid(),
+  });
+
+  const {data, write} = useContractWrite(config);
+
+  const {isLoading, isSuccess} = useWaitForTransaction({
+    hash: data?.hash,
+  });
 
   return (
     <Box
       component="form"
+      onSubmit={e => {
+        e.preventDefault();
+        write?.();
+      }}
       sx={{
         width: 'fit-content',
         borderRadius: '10px',
@@ -172,6 +205,7 @@ export default function SetupEventForm() {
             id="voters"
             label="List of Voters"
             variant="filled"
+            placeholder="0x..abc, 0x...cde, 0x..."
             multiline
             disabled={votersConfirmed}
             value={stringVoters}
@@ -194,6 +228,7 @@ export default function SetupEventForm() {
             label="List of Participants"
             variant="filled"
             multiline
+            placeholder="0x..abc, 0x...cde, 0x..."
             disabled={participantsConfirmed}
             value={stringParticipants}
             onChange={handleChangeParticipants}
@@ -208,10 +243,24 @@ export default function SetupEventForm() {
       </div>
 
       <div style={{marginTop: '1rem'}}>
-        <Button variant="outlined" onClick={handleSubmit} disabled={!isFormValid()}>
-          Create Event
+        <Button variant="outlined" type="submit" disabled={!write || isLoading}>
+          {isLoading ? 'Creating event...' : 'Create Event'}
         </Button>
       </div>
+
+      {isSuccess && (
+        <div>
+          Successfully created your event!
+          <div>
+            <Link
+              target="_blank"
+              rel="noopener noreferrer"
+              href={`${chain.blockExplorers.etherscan.url}/tx/${data?.hash}`}>
+              Tx on Etherscan
+            </Link>
+          </div>
+        </div>
+      )}
     </Box>
   );
 }
