@@ -28,13 +28,13 @@ export default function SetupEventForm() {
   const debouncedThirdWinnerPercentage = useDebounce(thirdWinnerPercentage);
 
   const [stringVoters, setStringVoters] = useState('');
-  const [votersConfirmed, setVotersConfirmed] = useState();
-  const [voters, setVoters] = useState([]);
+  const [votersConfirmed, setVotersConfirmed] = useState(false);
+  const [voters, setVoters] = useState<string[]>([]);
   const debouncedVoters = useDebounce(voters);
 
   const [stringParticipants, setStringParticipants] = useState('');
-  const [participantsConfirmed, setParticipantsConfirmed] = useState();
-  const [participants, setParticipants] = useState([]);
+  const [participantsConfirmed, setParticipantsConfirmed] = useState(false);
+  const [participants, setParticipants] = useState<string[]>([]);
   const debouncedParticipants = useDebounce(participants);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,6 +126,7 @@ export default function SetupEventForm() {
     enabled: isFormValid(),
   });
 
+  // @ts-ignore
   const {data, write} = useContractWrite(config);
 
   const {isLoading, isSuccess} = useWaitForTransaction({
@@ -255,7 +256,7 @@ export default function SetupEventForm() {
             <Link
               target="_blank"
               rel="noopener noreferrer"
-              href={`${chain.blockExplorers.etherscan.url}/tx/${data?.hash}`}>
+              href={`${chain?.blockExplorers?.etherscan?.url}/tx/${data?.hash}`}>
               Tx on Etherscan
             </Link>
           </div>
