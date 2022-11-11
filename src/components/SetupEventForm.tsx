@@ -108,7 +108,7 @@ export default function SetupEventForm() {
   };
 
   const {config} = usePrepareContractWrite({
-    address: '0x0c66b1628172A07bE62AfA95110D824047c92330',
+    address: '0xdCC94d087a9b5fbbf64d31254771d3880DdED4eC',
     abi: PrizeEventAbi,
     functionName: 'setupEvent',
     args: [

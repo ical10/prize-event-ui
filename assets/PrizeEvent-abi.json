@@ -18,6 +18,11 @@
     "type": "error"
   },
   {
+    "inputs": [{"internalType": "uint256[]", "name": "winnerDistribution", "type": "uint256[]"}],
+    "name": "PrizeEventHandler__InvalidWinnerDistribution",
+    "type": "error"
+  },
+  {
     "inputs": [{"internalType": "uint256", "name": "eventId", "type": "uint256"}],
     "name": "PrizeEventHandler__NotAValidEvent",
     "type": "error"
@@ -69,6 +74,25 @@
     "anonymous": false,
     "inputs": [
       {"indexed": true, "internalType": "uint256", "name": "eventId", "type": "uint256"},
+      {"indexed": true, "internalType": "address", "name": "participant", "type": "address"}
+    ],
+    "name": "ParticipantRegistered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "winner", "type": "address"},
+      {"indexed": true, "internalType": "uint256", "name": "winnerBalance", "type": "uint256"},
+      {"indexed": true, "internalType": "address", "name": "tokenAddress", "type": "address"}
+    ],
+    "name": "PrizeClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "uint256", "name": "eventId", "type": "uint256"},
       {"indexed": true, "internalType": "uint256", "name": "prizeAmount", "type": "uint256"}
     ],
     "name": "PrizeEventClosed",
@@ -78,8 +102,7 @@
     "anonymous": false,
     "inputs": [
       {"indexed": true, "internalType": "uint256", "name": "eventId", "type": "uint256"},
-      {"indexed": true, "internalType": "uint256", "name": "prizeAmount", "type": "uint256"},
-      {"indexed": true, "internalType": "uint256", "name": "referenceBlock", "type": "uint256"}
+      {"indexed": true, "internalType": "uint256", "name": "prizeAmount", "type": "uint256"}
     ],
     "name": "PrizeEventCreated",
     "type": "event"
@@ -115,8 +138,34 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "uint256", "name": "eventId", "type": "uint256"},
+      {"indexed": true, "internalType": "address", "name": "participant", "type": "address"},
+      {"indexed": true, "internalType": "uint256", "name": "amountOfVotes", "type": "uint256"}
+    ],
+    "name": "VoteSent",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "uint256", "name": "eventId", "type": "uint256"},
+      {"indexed": true, "internalType": "address", "name": "voter", "type": "address"}
+    ],
+    "name": "VoterRegistered",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
+    "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MINTER_ROLE",
     "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
     "stateMutability": "view",
     "type": "function"
@@ -157,6 +206,13 @@
   },
   {
     "inputs": [{"internalType": "uint256", "name": "eventId", "type": "uint256"}],
+    "name": "getParticipantsForEvent",
+    "outputs": [{"internalType": "address[]", "name": "", "type": "address[]"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "eventId", "type": "uint256"}],
     "name": "getPrizeEvent",
     "outputs": [
       {
@@ -164,7 +220,6 @@
           {"internalType": "uint256", "name": "eventId", "type": "uint256"},
           {"internalType": "address", "name": "owner", "type": "address"},
           {"internalType": "uint256", "name": "prizeAmount", "type": "uint256"},
-          {"internalType": "uint256", "name": "referenceBlock", "type": "uint256"},
           {"internalType": "contract IERC20", "name": "prizeToken", "type": "address"},
           {"internalType": "uint256[]", "name": "winnersDistribution", "type": "uint256[]"},
           {"internalType": "address[]", "name": "voters", "type": "address[]"},
@@ -239,6 +294,16 @@
   },
   {
     "inputs": [
+      {"internalType": "address", "name": "voter", "type": "address"},
+      {"internalType": "uint256", "name": "eventId", "type": "uint256"}
+    ],
+    "name": "registerVoter",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {"internalType": "bytes32", "name": "role", "type": "bytes32"},
       {"internalType": "address", "name": "account", "type": "address"}
     ],
@@ -264,7 +329,6 @@
       {"internalType": "uint256", "name": "eventId", "type": "uint256"},
       {"internalType": "address", "name": "owner", "type": "address"},
       {"internalType": "uint256", "name": "prizeAmount", "type": "uint256"},
-      {"internalType": "uint256", "name": "referenceBlock", "type": "uint256"},
       {"internalType": "contract IERC20", "name": "prizeToken", "type": "address"},
       {"internalType": "enum PrizeEventHandler.EventStatus", "name": "status", "type": "uint8"}
     ],
@@ -298,7 +362,6 @@
       {"internalType": "uint256", "name": "eventId", "type": "uint256"},
       {"internalType": "address", "name": "owner", "type": "address"},
       {"internalType": "uint256", "name": "prizeAmount", "type": "uint256"},
-      {"internalType": "uint256", "name": "referenceBlock", "type": "uint256"},
       {"internalType": "contract IERC20", "name": "prizeToken", "type": "address"},
       {"internalType": "enum PrizeEventHandler.EventStatus", "name": "status", "type": "uint8"}
     ],
@@ -315,7 +378,6 @@
   {
     "inputs": [
       {"internalType": "uint256", "name": "_prizeAmount", "type": "uint256"},
-      {"internalType": "uint256", "name": "_referenceBlock", "type": "uint256"},
       {"internalType": "address", "name": "_prizeToken", "type": "address"},
       {"internalType": "uint256[]", "name": "_winnersDistribution", "type": "uint256[]"},
       {"internalType": "address[]", "name": "_voters", "type": "address[]"},
